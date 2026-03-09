@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TaskFlow • Daily Task Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+/* ============================================================
+   TASKFLOW — ENHANCED SINGLE FILE
+   Glassmorphism · Mobile-First · Full Featured
+============================================================ */
+:root {
+  --bg:#f0f4ff; --bg2:#e8eeff;
+  --surface:rgba(255,255,255,0.6); --surface2:rgba(255,255,255,0.8);
+  --border:rgba(120,130,200,0.2);
+  --text:#1a1d2e; --text2:#5a5f7a; --text3:#8890aa;
+  --accent:#5c6ef8; --accent2:#7b4fff;
+  --success:#22c55e; --warning:#f59e0b; --danger:#ef4444; --overdue:#ff6b6b;
+  --shadow:0 8px 32px rgba(92,110,248,0.12);
+  --radius:16px; --radius-sm:10px; --nav-h:64px;
+  --font:'Sora',sans-serif; --mono:'JetBrains Mono',monospace;
+}
+.dark-mode {
+  --bg:#0d0e1a; --bg2:#12142a;
+  --surface:rgba(255,255,255,0.04); --surface2:rgba(255,255,255,0.08);
+  --border:rgba(120,130,200,0.12);
+  --text:#e8eaff; --text2:#9099cc; --text3:#5a6080;
+  --shadow:0 8px 32px rgba(0,0,0,0.4);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;transition:background .4s,color .4s;overflow-x:hidden;}
+.hidden{display:none!important;}
+.glass{background:var(--surface);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--border);box-shadow:var(--shadow);}
+body::before{content:'';position:fixed;top:-30%;right:-20%;width:600px;height:600px;background:radial-gradient(circle,rgba(92,110,248,.12) 0%,transparent 70%);pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;bottom:-20%;left:-10%;width:500px;height:500px;background:radial-gradient(circle,rgba(123,79,255,.1) 0%,transparent 70%);pointer-events:none;z-index:0;}
+
+/* ---- FOCUS ACCESSIBILITY ---- */
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+/* ---- AUTH ---- */
+.auth-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:1000;padding:1rem;}
+.auth-bg{position:fixed;inset:0;background:linear-gradient(135deg,#0d0e1a 0%,#1a1040 50%,#0d1a2a 100%);}
+.auth-card{position:relative;z-index:1;width:100%;max-width:420px;padding:2.5rem 2rem;border-radius:var(--radius);background:rgba(255,255,255,0.05)!important;border:1px solid rgba(255,255,255,0.12)!important;animation:slideUp .5s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4);}50%{box-shadow:0 0 0 6px rgba(239,68,68,0);}}
+.auth-logo{font-size:1.6rem;font-weight:700;text-align:center;margin-bottom:2rem;background:linear-gradient(135deg,#5c6ef8,#7b4fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px;}
+.auth-form{display:none;flex-direction:column;gap:1rem;}
+.auth-form.active{display:flex;}
+.auth-form h2{color:#e8eaff;font-size:1.5rem;font-weight:600;}
+.auth-sub{color:#7a80aa;font-size:.875rem;margin-top:-.5rem;}
+.auth-input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-sm);padding:.75rem 1rem;font-family:var(--font);font-size:.9rem;color:#e8eaff;outline:none;transition:border-color .2s;width:100%;}
+.auth-input::placeholder{color:#4a5070;}
+.auth-input:focus{border-color:var(--accent);}
+.auth-switch{color:#7a80aa;font-size:.875rem;text-align:center;}
+.auth-switch span{color:var(--accent);cursor:pointer;font-weight:500;}
+.auth-switch span:hover{text-decoration:underline;}
+.auth-error{color:#ff6b6b;font-size:.8rem;min-height:1rem;text-align:center;}
+
+/* ---- BUTTONS ---- */
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:var(--radius-sm);padding:.7rem 1.4rem;font-family:var(--font);font-size:.875rem;font-weight:600;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 4px 16px rgba(92,110,248,.35);white-space:nowrap;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(92,110,248,.45);}
+.btn-primary.full{width:100%;padding:.9rem;font-size:.95rem;}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.7rem 1.4rem;font-family:var(--font);font-size:.875rem;font-weight:500;cursor:pointer;transition:background .2s;}
+.btn-secondary:hover{background:var(--bg2);}
+.btn-danger{background:rgba(239,68,68,.1);color:var(--danger);border:1px solid rgba(239,68,68,.3);border-radius:var(--radius-sm);padding:.7rem 1.6rem;font-family:var(--font);font-size:.875rem;font-weight:600;cursor:pointer;transition:background .2s,transform .2s;}
+.btn-danger:hover{background:rgba(239,68,68,.2);transform:translateY(-1px);}
+.icon-btn{background:var(--surface);border:1px solid var(--border);border-radius:10px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.1rem;transition:background .2s,transform .2s;}
+.icon-btn:hover{background:var(--surface2);transform:scale(1.05);}
+
+/* ---- NAVBAR ---- */
+.navbar{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:var(--nav-h);border-radius:0 0 var(--radius) var(--radius);border-top:none;}
+.nav-left{display:flex;align-items:center;gap:1.2rem;}
+.nav-logo{font-size:1.25rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.3px;}
+.nav-date{font-size:.8rem;color:var(--text2);font-weight:500;}
+.nav-right{display:flex;align-items:center;gap:.75rem;}
+.clock-wrap{display:flex;align-items:baseline;gap:3px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.35rem .75rem;}
+.clock{font-family:var(--mono);font-size:1.05rem;font-weight:500;color:var(--accent);letter-spacing:1px;}
+.clock-ampm{font-size:.65rem;font-weight:600;color:var(--text2);letter-spacing:1px;}
+.prod-badge{background:linear-gradient(135deg,var(--success),#16a34a);color:#fff;font-size:.7rem;font-weight:700;padding:.3rem .6rem;border-radius:999px;letter-spacing:.5px;}
+
+/* ---- STATS ---- */
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;padding:1.25rem 1.5rem;position:relative;z-index:1;}
+.stat-card{border-radius:var(--radius);padding:1.1rem 1rem;text-align:center;transition:transform .2s;}
+.stat-card:hover{transform:translateY(-2px);}
+.stat-num{display:block;font-size:1.8rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin-bottom:.3rem;}
+.stat-label{font-size:.72rem;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.5px;}
+
+/* ---- SEARCH BAR ---- */
+.search-bar{display:flex;gap:.5rem;padding:0 1.5rem .75rem;position:relative;z-index:1;}
+.search-input{flex:1;background:var(--surface);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.7rem 1rem;font-family:var(--font);font-size:.875rem;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;}
+.search-input::placeholder{color:var(--text3);}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(92,110,248,.12);}
+
+/* ---- MAIN ---- */
+.main-content{padding:0 1.5rem 4rem;max-width:1400px;margin:0 auto;position:relative;z-index:1;}
+.section{margin-bottom:2rem;}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+.section-title{font-size:1.15rem;font-weight:700;}
+
+/* ---- TABLE ---- */
+.table-wrap{border-radius:var(--radius);overflow:hidden;background:var(--surface);backdrop-filter:blur(16px);border:1px solid var(--border);box-shadow:var(--shadow);}
+.task-table{width:100%;border-collapse:collapse;font-size:.85rem;}
+.task-table th{padding:.85rem 1rem;text-align:left;font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);background:var(--surface2);border-bottom:1px solid var(--border);}
+.task-table td{padding:.9rem 1rem;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle;}
+.task-table tr:last-child td{border-bottom:none;}
+.task-table tbody tr{transition:background .15s;}
+.task-table tbody tr:hover{background:rgba(92,110,248,.04);}
+.task-table tr.overdue td{color:var(--overdue);}
+.task-table tr.overdue{background:rgba(255,107,107,.04);}
+
+/* ---- PROGRESS ---- */
+.progress-wrap{display:flex;flex-direction:column;gap:5px;min-width:140px;}
+.progress-label{font-size:.68rem;color:var(--text3);display:flex;justify-content:space-between;}
+.progress-bar{height:6px;background:var(--bg2);border-radius:999px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:999px;transition:width 1s ease;}
+.progress-fill.time{background:linear-gradient(90deg,var(--warning),#f97316);}
+.progress-fill.task{background:linear-gradient(90deg,var(--accent),var(--success));}
+.progress-fill.danger{background:linear-gradient(90deg,var(--danger),var(--overdue));}
+.completion-wrap{display:flex;align-items:center;gap:8px;}
+.completion-input{width:55px;}
+
+/* ---- ACTION BUTTONS ---- */
+.actions-cell{display:flex;gap:6px;flex-wrap:wrap;}
+.act-btn{padding:.35rem .7rem;border-radius:8px;font-family:var(--font);font-size:.72rem;font-weight:600;cursor:pointer;border:none;transition:transform .15s,opacity .15s;white-space:nowrap;}
+.act-btn:hover{transform:scale(1.04);opacity:.9;}
+.act-complete{background:rgba(34,197,94,.15);color:var(--success);border:1px solid rgba(34,197,94,.25)!important;}
+.act-edit{background:rgba(92,110,248,.1);color:var(--accent);border:1px solid rgba(92,110,248,.2)!important;}
+.act-delete{background:rgba(239,68,68,.1);color:var(--danger);border:1px solid rgba(239,68,68,.2)!important;}
+
+/* ---- CARDS (mobile) ---- */
+.task-card{border-radius:var(--radius);padding:1.2rem;margin-bottom:1rem;animation:fadeIn .3s ease;position:relative;overflow:hidden;}
+.task-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--accent),var(--accent2));border-radius:2px 0 0 2px;}
+.task-card.overdue::before{background:linear-gradient(180deg,var(--danger),var(--overdue));}
+.card-title{font-size:1rem;font-weight:700;margin-bottom:.4rem;}
+.card-desc{font-size:.82rem;color:var(--text2);margin-bottom:.8rem;line-height:1.5;}
+.card-meta{display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:.85rem;}
+.card-badge{font-size:.7rem;font-weight:600;padding:.25rem .6rem;border-radius:999px;background:rgba(92,110,248,.1);color:var(--accent);border:1px solid rgba(92,110,248,.2);}
+.card-progress{display:flex;flex-direction:column;gap:6px;margin-bottom:1rem;}
+.card-actions{display:flex;gap:8px;}
+.card-actions .act-btn{flex:1;text-align:center;padding:.5rem;}
+
+/* ---- COMPLETED ---- */
+.completed-badge{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:600;padding:.25rem .6rem;border-radius:999px;background:rgba(34,197,94,.12);color:var(--success);border:1px solid rgba(34,197,94,.2);}
+
+/* ---- EMPTY STATE ---- */
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--text3);}
+.empty-icon{font-size:2.5rem;margin-bottom:.75rem;}
+.empty-state p{font-size:.9rem;}
+
+/* ---- RESET ---- */
+.reset-wrap{text-align:center;padding:1.5rem 0 2.5rem;}
+
+/* ---- MODAL ---- */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:500;padding:1rem;animation:fadeIn .2s ease;}
+.modal{width:100%;max-width:500px;border-radius:var(--radius);overflow:hidden;animation:slideUp .3s ease;}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);}
+.modal-header h3{font-size:1.05rem;font-weight:700;}
+.close-btn{background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--text2);padding:.25rem;border-radius:6px;transition:background .15s;}
+.close-btn:hover{background:var(--bg2);}
+.modal-body{padding:1.5rem;display:flex;flex-direction:column;gap:1rem;}
+.modal-footer{display:flex;justify-content:flex-end;gap:.75rem;padding:1rem 1.5rem;border-top:1px solid var(--border);}
+
+/* ---- FORM ---- */
+.form-group{display:flex;flex-direction:column;gap:.4rem;}
+.form-group label{font-size:.78rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;}
+.form-row{display:flex;gap:1rem;}
+.form-group.half{flex:1;}
+.form-input,.form-textarea{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.7rem .9rem;font-family:var(--font);font-size:.875rem;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;width:100%;}
+.form-input:focus,.form-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(92,110,248,.12);}
+.form-textarea{resize:vertical;min-height:80px;}
+
+/* ---- VOICE ---- */
+.textarea-wrap{position:relative;}
+.voice-btn{position:absolute;bottom:.5rem;right:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;transition:background .2s,transform .2s;}
+.voice-btn:hover{background:rgba(92,110,248,.1);transform:scale(1.05);}
+.voice-btn.active{background:rgba(239,68,68,.15);animation:pulse 1s infinite;}
+.voice-status{font-size:.72rem;color:var(--danger);min-height:1rem;}
+
+/* ---- FAB ---- */
+.fab{position:fixed;bottom:1.75rem;right:1.75rem;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:1.8rem;border:none;cursor:pointer;box-shadow:0 6px 24px rgba(92,110,248,.5);display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s;z-index:200;}
+.fab:hover{transform:scale(1.1) rotate(90deg);box-shadow:0 8px 30px rgba(92,110,248,.6);}
+
+/* ---- RANGE INPUT ---- */
+input[type="range"]{-webkit-appearance:none;width:80px;height:5px;border-radius:999px;background:var(--bg2);outline:none;cursor:pointer;}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 4px rgba(92,110,248,.4);}
+
+/* ---- TOAST ---- */
+#toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);padding:.75rem 1.5rem;border-radius:999px;display:flex;gap:1rem;align-items:center;z-index:999;transition:opacity .3s,transform .3s;white-space:nowrap;font-size:.875rem;}
+#toast.hidden{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(10px);}
+#toast-undo{background:none;border:none;color:var(--accent);font-weight:700;cursor:pointer;font-family:var(--font);font-size:.875rem;}
+
+/* ============================================================
+   KNOWLEDGE SECTIONS
+============================================================ */
+details.knowledge-section{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:2rem;background:var(--surface);backdrop-filter:blur(16px);box-shadow:var(--shadow);overflow:hidden;}
+details.knowledge-section summary{padding:1.5rem 2rem;cursor:pointer;list-style:none;display:flex;align-items:center;gap:1.25rem;transition:background .2s;}
+details.knowledge-section summary::-webkit-details-marker{display:none;}
+details.knowledge-section summary:hover{background:rgba(92,110,248,.04);}
+details.knowledge-section[open] summary{border-bottom:1px solid var(--border);}
+.summary-arrow{margin-left:auto;font-size:.75rem;color:var(--text3);transition:transform .3s;}
+details[open] .summary-arrow{transform:rotate(180deg);}
+.knowledge-header{display:flex;align-items:center;gap:1.25rem;position:relative;overflow:hidden;}
+.ai-header{background:linear-gradient(135deg,rgba(92,110,248,.12),rgba(123,79,255,.08));}
+.stock-header{background:linear-gradient(135deg,rgba(34,197,94,.1),rgba(16,185,129,.06));}
+.knowledge-icon{font-size:2.2rem;line-height:1;flex-shrink:0;}
+.knowledge-title{font-size:1.5rem;font-weight:800;letter-spacing:-.5px;line-height:1;margin-bottom:.3rem;}
+.ai-header .knowledge-title{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.stock-header .knowledge-title{background:linear-gradient(135deg,#22c55e,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.knowledge-subtitle{font-size:.82rem;color:var(--text2);}
+.knowledge-body{padding:2rem;display:flex;flex-direction:column;gap:1.5rem;}
+.k-intro{padding:1.5rem;border-radius:var(--radius);font-size:.88rem;line-height:1.75;display:flex;flex-direction:column;gap:.75rem;}
+.k-section-title{font-size:1.05rem;font-weight:700;padding-bottom:.5rem;border-bottom:2px solid var(--border);}
+.k-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;}
+.k-card{border-radius:var(--radius);padding:1.25rem;transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column;gap:.6rem;}
+.k-card:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(92,110,248,.15);}
+.k-card-icon{font-size:1.5rem;line-height:1;}
+.k-card h4{font-size:.9rem;font-weight:700;}
+.k-card p{font-size:.82rem;color:var(--text2);line-height:1.65;}
+.trap-card{border-left:3px solid var(--warning);}
+.k-alert{border-radius:var(--radius);padding:1.4rem 1.5rem;border-left:4px solid var(--danger);font-size:.875rem;line-height:1.7;display:flex;flex-direction:column;gap:.75rem;}
+.k-alert h4{font-weight:700;}
+.k-alert ul{padding-left:1.25rem;}
+.k-alert li{margin-bottom:.35rem;}
+.k-formula{font-family:var(--mono);font-size:.8rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.85rem 1rem;line-height:1.8;color:var(--accent);white-space:pre-line;}
+.k-conclusion{border-radius:var(--radius);padding:1.75rem;border-left:4px solid var(--accent);display:flex;flex-direction:column;gap:1rem;font-size:.875rem;line-height:1.7;}
+.k-conclusion h3{font-size:1rem;font-weight:700;}
+.k-conclusion blockquote{padding:1rem 1.25rem;border-left:3px solid var(--accent2);background:rgba(92,110,248,.06);border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-style:italic;color:var(--text2);}
+.k-cta{font-weight:600;color:var(--accent);}
+.table-scroll{border-radius:var(--radius);overflow:hidden;}
+.k-table{width:100%;border-collapse:collapse;font-size:.83rem;}
+.k-table th{padding:.8rem 1rem;text-align:left;font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);background:var(--surface2);border-bottom:1px solid var(--border);}
+.k-table td{padding:.75rem 1rem;border-bottom:1px solid var(--border);color:var(--text);line-height:1.5;vertical-align:top;}
+.k-table tr:last-child td{border-bottom:none;}
+.k-table tr:hover td{background:rgba(92,110,248,.04);}
+.k-timeline{border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;flex-direction:column;}
+.timeline-item{display:flex;align-items:flex-start;gap:1rem;padding:.7rem 0;border-bottom:1px solid var(--border);font-size:.85rem;}
+.timeline-item:last-child{border-bottom:none;}
+.tl-time{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent);min-width:110px;flex-shrink:0;}
+.tl-text{color:var(--text2);line-height:1.5;}
+.k-quotes{display:flex;flex-direction:column;gap:1rem;}
+.k-quote{border-radius:var(--radius);padding:1.25rem 1.5rem;font-style:italic;color:var(--text2);font-size:.875rem;line-height:1.7;border-left:3px solid var(--accent2);}
+.k-quote cite{display:block;margin-top:.4rem;font-style:normal;font-size:.78rem;font-weight:600;color:var(--accent);}
+.k-list{padding-left:1.2rem;font-size:.83rem;color:var(--text2);line-height:1.8;}
+.k-para{font-size:.875rem;color:var(--text2);line-height:1.7;}
+.k-steps{padding-left:1.4rem;font-size:.875rem;color:var(--text2);line-height:1.9;}
+
+/* ============================================================
+   NOTIFICATION SYSTEM
+============================================================ */
+
+/* Bell button with badge */
+.notif-btn{position:relative;}
+.notif-badge{
+  position:absolute;top:-5px;right:-5px;
+  background:var(--danger);color:#fff;
+  font-size:.6rem;font-weight:700;
+  min-width:18px;height:18px;
+  border-radius:999px;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid var(--bg);
+  pointer-events:none;
+  transition:transform .2s;
+  padding:0 3px;
+}
+.notif-badge.hidden{display:none;}
+.notif-badge.pop{animation:badgePop .3s ease;}
+@keyframes badgePop{0%{transform:scale(1);}50%{transform:scale(1.4);}100%{transform:scale(1);}}
+
+/* Notification panel (dropdown) */
+.notif-panel{
+  position:absolute;
+  top:calc(var(--nav-h) + 4px);
+  right:1.5rem;
+  width:360px;
+  max-height:520px;
+  border-radius:var(--radius);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  z-index:300;
+  animation:slideDown .25s ease;
+}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}}
+.notif-panel.hidden{display:none;}
+.notif-panel-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.85rem 1.1rem;
+  border-bottom:1px solid var(--border);
+  background:var(--surface2);
+}
+.notif-panel-title{font-size:.875rem;font-weight:700;}
+.notif-panel-actions{display:flex;gap:.5rem;}
+.notif-clear-btn{
+  font-size:.72rem;font-weight:600;color:var(--text2);
+  background:none;border:none;cursor:pointer;padding:.2rem .5rem;
+  border-radius:6px;font-family:var(--font);
+  transition:background .15s,color .15s;
+}
+.notif-clear-btn:hover{background:var(--bg2);color:var(--text);}
+
+/* permission strip */
+.notif-perm-strip{
+  display:flex;align-items:center;gap:.75rem;
+  padding:.75rem 1.1rem;
+  background:rgba(245,158,11,.08);
+  border-bottom:1px solid rgba(245,158,11,.2);
+  font-size:.78rem;color:var(--warning);
+}
+.notif-perm-strip.hidden{display:none;}
+.notif-perm-strip button{
+  margin-left:auto;font-size:.72rem;font-weight:700;
+  background:var(--warning);color:#fff;border:none;
+  border-radius:6px;padding:.25rem .65rem;cursor:pointer;font-family:var(--font);
+  white-space:nowrap;
+}
+
+/* notification list */
+.notif-list{overflow-y:auto;flex:1;}
+.notif-item{
+  display:flex;gap:.75rem;align-items:flex-start;
+  padding:.85rem 1.1rem;
+  border-bottom:1px solid var(--border);
+  transition:background .15s;
+  position:relative;
+  cursor:default;
+}
+.notif-item:last-child{border-bottom:none;}
+.notif-item:hover{background:rgba(92,110,248,.04);}
+.notif-item.unread::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;
+  width:3px;background:var(--accent);border-radius:0 2px 2px 0;
+}
+.notif-item.type-warning .notif-icon-wrap{background:rgba(245,158,11,.12);}
+.notif-item.type-danger  .notif-icon-wrap{background:rgba(239,68,68,.12);}
+.notif-item.type-success .notif-icon-wrap{background:rgba(34,197,94,.12);}
+.notif-item.type-info    .notif-icon-wrap{background:rgba(92,110,248,.1);}
+.notif-icon-wrap{
+  width:36px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;flex-shrink:0;
+  background:rgba(92,110,248,.1);
+}
+.notif-body{flex:1;min-width:0;}
+.notif-title{font-size:.82rem;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.notif-msg{font-size:.75rem;color:var(--text2);line-height:1.45;}
+.notif-time{font-size:.68rem;color:var(--text3);margin-top:3px;font-family:var(--mono);}
+.notif-dismiss{
+  background:none;border:none;cursor:pointer;
+  color:var(--text3);font-size:.85rem;padding:.15rem .3rem;
+  border-radius:4px;transition:background .15s,color .15s;
+  flex-shrink:0;align-self:center;
+}
+.notif-dismiss:hover{background:var(--bg2);color:var(--text);}
+.notif-empty{
+  text-align:center;padding:3rem 1rem;
+  color:var(--text3);font-size:.85rem;
+}
+.notif-empty-icon{font-size:2rem;margin-bottom:.5rem;}
+
+/* Settings row inside panel */
+.notif-settings-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.75rem 1.1rem;
+  border-top:1px solid var(--border);
+  background:var(--surface2);
+  font-size:.78rem;color:var(--text2);
+  flex-shrink:0;
+}
+.notif-settings-row label{display:flex;align-items:center;gap:.5rem;cursor:pointer;}
+
+/* Toggle switch */
+.toggle-switch{position:relative;width:34px;height:18px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-track{
+  position:absolute;inset:0;
+  background:var(--text3);border-radius:999px;
+  transition:background .2s;cursor:pointer;
+}
+.toggle-switch input:checked + .toggle-track{background:var(--accent);}
+.toggle-track::after{
+  content:'';position:absolute;
+  width:12px;height:12px;background:#fff;
+  border-radius:50%;top:3px;left:3px;
+  transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+.toggle-switch input:checked + .toggle-track::after{transform:translateX(16px);}
+
+/* Notification snackbar (OS-style pop) */
+.notif-snack{
+  position:fixed;top:calc(var(--nav-h) + 12px);right:1.5rem;
+  width:320px;
+  border-radius:var(--radius);
+  padding:1rem 1.1rem;
+  display:flex;gap:.75rem;align-items:flex-start;
+  z-index:999;
+  animation:snackIn .3s ease;
+  cursor:pointer;
+}
+.notif-snack.hiding{animation:snackOut .3s ease forwards;}
+@keyframes snackIn{from{opacity:0;transform:translateX(40px);}to{opacity:1;transform:translateX(0);}}
+@keyframes snackOut{from{opacity:1;transform:translateX(0);}to{opacity:0;transform:translateX(40px);}}
+.snack-icon{font-size:1.4rem;flex-shrink:0;line-height:1;}
+.snack-body{flex:1;min-width:0;}
+.snack-title{font-size:.83rem;font-weight:700;margin-bottom:2px;}
+.snack-msg{font-size:.75rem;color:var(--text2);line-height:1.4;}
+.snack-close{background:none;border:none;cursor:pointer;color:var(--text3);font-size:.85rem;padding:.15rem;align-self:flex-start;}
+.snack-progress{
+  position:absolute;bottom:0;left:0;height:3px;
+  background:var(--accent);border-radius:0 0 var(--radius) var(--radius);
+  animation:snackTimer linear forwards;
+}
+@keyframes snackTimer{from{width:100%;}to{width:0%;}}
+
+/* Notification settings panel (inside details) */
+.notif-config-section{
+  margin-bottom:2rem;
+  border-radius:var(--radius);
+  border:1px solid var(--border);
+  background:var(--surface);
+  backdrop-filter:blur(16px);
+  overflow:hidden;
+}
+.notif-config-header{
+  display:flex;align-items:center;gap:1rem;
+  padding:1.1rem 1.5rem;
+  border-bottom:1px solid var(--border);
+  background:var(--surface2);
+}
+.notif-config-header h3{font-size:.95rem;font-weight:700;}
+.notif-config-body{padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:.85rem;}
+.notif-config-row{
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:.85rem;
+}
+.notif-config-row .label-wrap{display:flex;flex-direction:column;gap:2px;}
+.notif-config-row .sub{font-size:.73rem;color:var(--text3);}
+
+/* ---- RESPONSIVE additions ---- */
+@media(max-width:680px){
+  .notif-panel{right:.75rem;left:.75rem;width:auto;}
+  .notif-snack{right:.75rem;left:.75rem;width:auto;}
+}
+
+/* ---- RESPONSIVE ---- */
+.desktop-only{display:block;}
+.mobile-only{display:none;}
+@media(max-width:900px){
+  .stats-bar{grid-template-columns:repeat(2,1fr);}
+  .k-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:680px){
+  :root{--nav-h:58px;}
+  .navbar{padding:0 1rem;}
+  .nav-date{display:none;}
+  .stats-bar{grid-template-columns:repeat(2,1fr);padding:1rem;gap:.75rem;}
+  .stat-num{font-size:1.4rem;}
+  .main-content{padding:0 1rem 6rem;}
+  .search-bar{padding:0 1rem .75rem;}
+  .section-header{flex-wrap:wrap;gap:.75rem;}
+  .desktop-only{display:none!important;}
+  .mobile-only{display:block!important;}
+  .k-grid{grid-template-columns:1fr;}
+  .knowledge-header{padding:1.25rem;}
+  .knowledge-title{font-size:1.2rem;}
+  .knowledge-body{padding:1.25rem;gap:1.25rem;}
+  .tl-time{min-width:90px;font-size:.7rem;}
+  .form-row{flex-direction:column;}
+  .modal-overlay{align-items:flex-end;}
+  .modal{border-radius:var(--radius) var(--radius) 0 0;}
+}
+@media(max-width:400px){
+  .prod-badge{display:none;}
+}
+  </style>
+</head>
+<body class="light-mode">
+
+<!-- ============================================================
+     AUTH SCREEN
+============================================================ -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-bg"></div>
+  <div class="auth-card glass">
+    <div class="auth-logo">⚡ TaskFlow</div>
+
+    <div id="signin-form" class="auth-form active">
+      <h2>Welcome Back</h2>
+      <p class="auth-sub">Sign in to your workspace</p>
+      <input type="email" id="signin-email" placeholder="Email address" class="auth-input" autocomplete="email"/>
+      <input type="password" id="signin-password" placeholder="Password" class="auth-input" autocomplete="current-password"/>
+      <button class="btn-primary full" id="btn-signin">Sign In</button>
+      <p class="auth-switch">No account? <span id="go-signup">Sign Up</span></p>
+      <div id="signin-error" class="auth-error" role="alert"></div>
+    </div>
+
+    <div id="signup-form" class="auth-form">
+      <h2>Create Account</h2>
+      <p class="auth-sub">Start your productivity journey</p>
+      <input type="text"     id="signup-name"     placeholder="Full name"              class="auth-input" autocomplete="name"/>
+      <input type="email"    id="signup-email"    placeholder="Email address"          class="auth-input" autocomplete="email"/>
+      <input type="password" id="signup-password" placeholder="Password (min 6 chars)" class="auth-input" autocomplete="new-password"/>
+      <button class="btn-primary full" id="btn-signup">Create Account</button>
+      <p class="auth-switch">Have an account? <span id="go-signin">Sign In</span></p>
+      <div id="signup-error" class="auth-error" role="alert"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MAIN APP
+============================================================ -->
+<div id="app" class="app hidden">
+
+  <nav class="navbar glass">
+    <div class="nav-left">
+      <span class="nav-logo">⚡ TaskFlow</span>
+      <span id="current-date" class="nav-date"></span>
+    </div>
+    <div class="nav-right">
+      <div id="productivity-badge" class="prod-badge" title="Daily Productivity">0% 🎯</div>
+      <div class="clock-wrap">
+        <span id="clock-time" class="clock">00:00:00</span>
+        <span id="clock-ampm" class="clock-ampm">AM</span>
+      </div>
+      <!-- NOTIFICATION BELL -->
+      <button class="icon-btn notif-btn" id="notif-bell-btn" title="Notifications" aria-label="Open notifications">
+        🔔
+        <span class="notif-badge hidden" id="notif-badge">0</span>
+      </button>
+      <button class="icon-btn" id="theme-toggle" title="Toggle Dark Mode">🌙</button>
+      <button class="icon-btn" id="logout-btn" title="Logout">🚪</button>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       NOTIFICATION PANEL (dropdown)
+  ============================================================ -->
+  <div id="notif-panel" class="notif-panel glass hidden" role="dialog" aria-label="Notifications">
+    <div class="notif-panel-header">
+      <span class="notif-panel-title">🔔 Notifications</span>
+      <div class="notif-panel-actions">
+        <button class="notif-clear-btn" id="notif-mark-all">Mark all read</button>
+        <button class="notif-clear-btn" id="notif-clear-all">Clear all</button>
+      </div>
+    </div>
+    <!-- permission strip -->
+    <div class="notif-perm-strip hidden" id="notif-perm-strip">
+      <span>⚠️ Enable browser notifications for alerts</span>
+      <button id="notif-perm-btn">Enable</button>
+    </div>
+    <div class="notif-list" id="notif-list">
+      <div class="notif-empty">
+        <div class="notif-empty-icon">🔕</div>
+        No notifications yet
+      </div>
+    </div>
+    <!-- settings row -->
+    <div class="notif-settings-row">
+      <label>
+        <span class="toggle-switch">
+          <input type="checkbox" id="notif-toggle" checked/>
+          <span class="toggle-track"></span>
+        </span>
+        Notify me about tasks
+      </label>
+      <button class="notif-clear-btn" id="notif-settings-link">⚙ Settings ↓</button>
+    </div>
+  </div>
+
+  <!-- Snackbar container (in-app pop-ups) -->
+  <div id="snack-container" aria-live="polite"></div>
+
+  <div class="stats-bar">
+    <div class="stat-card glass"><span class="stat-num" id="stat-total">0</span><span class="stat-label">Total Tasks</span></div>
+    <div class="stat-card glass"><span class="stat-num" id="stat-active">0</span><span class="stat-label">Active</span></div>
+    <div class="stat-card glass"><span class="stat-num" id="stat-done">0</span><span class="stat-label">Completed</span></div>
+    <div class="stat-card glass"><span class="stat-num" id="stat-percent">0%</span><span class="stat-label">Productivity</span></div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-bar">
+    <input type="text" id="search-input" class="search-input" placeholder="🔍 Search tasks by title or description…" aria-label="Search tasks"/>
+    <button class="btn-secondary" id="clear-search" title="Clear search">✕</button>
+  </div>
+
+  <main class="main-content">
+
+    <!-- ACTIVE TASKS -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">📋 Active Tasks</h2>
+        <button class="btn-primary" id="open-add-btn">+ Add Task</button>
+      </div>
+      <div class="table-wrap desktop-only">
+        <table class="task-table">
+          <thead>
+            <tr>
+              <th>Date</th><th>Time Range</th><th>Task</th><th>Given Time</th>
+              <th>Time Remaining</th><th>Completion</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="task-table-body"></tbody>
+        </table>
+      </div>
+      <div class="cards-wrap mobile-only" id="task-cards"></div>
+      <div id="no-tasks" class="empty-state">
+        <div class="empty-icon">🗒️</div>
+        <p>No active tasks. Hit <strong>+ Add Task</strong> to begin!</p>
+      </div>
+    </section>
+
+    <!-- COMPLETED TASKS -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">✅ Completed Tasks</h2>
+      </div>
+      <div class="table-wrap desktop-only">
+        <table class="task-table">
+          <thead>
+            <tr><th>Date</th><th>Task</th><th>Time Range</th><th>Completed At</th><th>Action</th></tr>
+          </thead>
+          <tbody id="completed-table-body"></tbody>
+        </table>
+      </div>
+      <div class="cards-wrap mobile-only" id="completed-cards"></div>
+      <div id="no-completed" class="empty-state">
+        <div class="empty-icon">🏆</div>
+        <p>Complete tasks to see them here!</p>
+      </div>
+    </section>
+
+    <div class="reset-wrap">
+      <button class="btn-danger" id="reset-all-btn">🗑 Reset All Tasks</button>
+    </div>
+
+    <!-- ============================================================
+         NOTIFICATION SETTINGS CARD
+    ============================================================ -->
+    <div class="notif-config-section" id="notif-settings-section">
+      <div class="notif-config-header">
+        <span style="font-size:1.4rem">🔔</span>
+        <div>
+          <h3>Notification Settings</h3>
+          <p style="font-size:.75rem;color:var(--text2);margin-top:2px">Customise how TaskFlow alerts you about your tasks</p>
+        </div>
+        <div id="notif-perm-status" style="margin-left:auto;font-size:.75rem;color:var(--text3);">Checking…</div>
+      </div>
+      <div class="notif-config-body">
+        <div class="notif-config-row">
+          <div class="label-wrap">
+            <span>Task Reminders</span>
+            <span class="sub">Alert when a task is about to start (10 min before)</span>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="ns-reminder" checked/><span class="toggle-track"></span></label>
+        </div>
+        <div class="notif-config-row">
+          <div class="label-wrap">
+            <span>Deadline Warnings</span>
+            <span class="sub">Alert at 75% and 90% of time elapsed</span>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="ns-deadline" checked/><span class="toggle-track"></span></label>
+        </div>
+        <div class="notif-config-row">
+          <div class="label-wrap">
+            <span>Overdue Alerts</span>
+            <span class="sub">Push alert when a task passes its deadline</span>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="ns-overdue" checked/><span class="toggle-track"></span></label>
+        </div>
+        <div class="notif-config-row">
+          <div class="label-wrap">
+            <span>Progress Check-ins</span>
+            <span class="sub">Nudge if completion is under 30% at halfway point</span>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="ns-progress" checked/><span class="toggle-track"></span></label>
+        </div>
+        <div class="notif-config-row">
+          <div class="label-wrap">
+            <span>Daily Summary</span>
+            <span class="sub">End-of-day summary of completed vs pending tasks</span>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="ns-summary" checked/><span class="toggle-track"></span></label>
+        </div>
+        <div class="notif-config-row">
+          <div class="label-wrap">
+            <span>In-App Snackbars</span>
+            <span class="sub">Show pop-ups inside the app (even without OS permission)</span>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="ns-snack" checked/><span class="toggle-track"></span></label>
+        </div>
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.25rem">
+          <button class="btn-primary" id="notif-request-btn" style="font-size:.8rem;padding:.5rem 1rem;">🔔 Enable Browser Notifications</button>
+          <button class="btn-secondary" id="notif-test-btn" style="font-size:.8rem;padding:.5rem 1rem;">🧪 Send Test Notification</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         AI ROADMAP (collapsible)
+    ============================================================ -->
+    <details class="knowledge-section" id="ai-roadmap">
+      <summary>
+        <div class="knowledge-header ai-header" style="flex:1;padding:0;">
+          <div class="knowledge-icon">🤖</div>
+          <div>
+            <div class="knowledge-title">AI ROADMAP</div>
+            <div class="knowledge-subtitle">Is This Roadmap Useful for Future AGI and ASI?</div>
+          </div>
+        </div>
+        <span class="summary-arrow">▼</span>
+      </summary>
+      <div class="knowledge-body">
+        <div class="k-intro glass">
+          <p><strong>Short answer:</strong> Absolutely — but with important caveats.</p>
+          <p>The roadmap covers <strong>the full spectrum of current AI engineering</strong>: from the mathematical foundations of deep learning to cutting-edge specializations like hardware kernels, robotics, and bio-AI. It emphasizes critical areas like <strong>safety, alignment, and evaluation-driven development</strong> — all of which will be essential if and when we build Artificial General Intelligence (AGI) or Artificial Superintelligence (ASI).</p>
+          <p>AGI and ASI remain hypothetical. No one knows exactly what architectures or breakthroughs will lead to general intelligence. That said, the skills from this roadmap will position you to <strong>understand, build, and control</strong> future systems.</p>
+        </div>
+
+        <h3 class="k-section-title">How This Roadmap Prepares You for AGI/ASI</h3>
+        <div class="k-grid">
+          <div class="k-card glass"><div class="k-card-icon">🧠</div><h4>1. Deep Understanding of Current Paradigms</h4><p>AGI will likely evolve from today's large language models, multimodal systems, and agents. By mastering transformers, scaling laws, RAG, fine-tuning, and multimodality, you understand the <strong>building blocks</strong> that any future general intelligence might incorporate.</p></div>
+          <div class="k-card glass"><div class="k-card-icon">🛡️</div><h4>2. Safety &amp; Alignment — The "Trust" Layer</h4><p>This roadmap dedicates a full phase to <strong>Constitutional AI, red teaming, prompt injection defense, and evaluation</strong>. As models become more powerful, alignment becomes the central challenge. Your hands-on experience will be invaluable.</p></div>
+          <div class="k-card glass"><div class="k-card-icon">⚡</div><h4>3. Hardware &amp; Optimization — The "Speed" Layer</h4><p>AGI/ASI will require enormous computational efficiency. Your knowledge of <strong>CUDA kernels, speculative decoding, FlashAttention, and chip-specific optimizations</strong> (Groq, Cerebras) prepares you to make future systems run faster and cheaper.</p></div>
+          <div class="k-card glass"><div class="k-card-icon">🤖</div><h4>4. Embodied AI &amp; Robotics</h4><p>Your experience with <strong>end-to-end transformer-based robotics</strong> and simulation will be directly applicable. Many believe true general intelligence must be grounded in physical experience through real-world interaction.</p></div>
+          <div class="k-card glass"><div class="k-card-icon">🔬</div><h4>5. Bio-AI &amp; Scientific Discovery</h4><p>Your exposure to <strong>AlphaFold, protein language models, and generative biology</strong> gives you a foothold in one of the most promising frontiers where AGI may first emerge or be applied.</p></div>
+          <div class="k-card glass"><div class="k-card-icon">🧩</div><h4>6. Agentic Systems &amp; Long-Term Memory</h4><p>The roadmap's focus on <strong>agents, tool use, and long-term memory architectures</strong> (generative agents, MCP) mirrors the kind of autonomy and persistence that AGI will need to operate effectively.</p></div>
+        </div>
+
+        <h3 class="k-section-title">What's Missing? (The Unknown Unknowns)</h3>
+        <div class="k-alert glass">
+          <h4>No roadmap can predict the future. AGI may require:</h4>
+          <ul>
+            <li><strong>New paradigms</strong> beyond deep learning (neurosymbolic AI, cognitive architectures, or something not yet imagined).</li>
+            <li><strong>Radically different hardware</strong> (quantum computing, neuromorphic chips).</li>
+            <li><strong>Breakthroughs in understanding intelligence itself</strong> (neuroscience, cognitive science).</li>
+          </ul>
+          <p>However, the foundational skills you gain — <strong>mathematical maturity, software engineering, research reading, and a safety mindset</strong> — will allow you to adapt and contribute no matter what form AGI takes.</p>
+        </div>
+
+        <div class="k-conclusion glass">
+          <h3>The Bottom Line</h3>
+          <p>This roadmap builds the <strong>mental models and technical depth</strong> required to tackle the hardest problems in AI. If AGI is developed in your lifetime, you'll be among the engineers who understand its internals, can identify risks, and can steer it toward beneficial outcomes.</p>
+          <blockquote>"It's arguably the best preparation available right now. It turns you from a consumer of AI into a <strong>builder and steward</strong> of the technology that may one day lead to general intelligence."</blockquote>
+          <p class="k-cta">Keep learning, keep building, and stay curious. <strong>The future is yours to shape.</strong></p>
+        </div>
+      </div>
+    </details>
+
+    <!-- ============================================================
+         STOCK MARKET (collapsible)
+    ============================================================ -->
+    <details class="knowledge-section" id="stock-market">
+      <summary>
+        <div class="knowledge-header stock-header" style="flex:1;padding:0;">
+          <div class="knowledge-icon">📈</div>
+          <div>
+            <div class="knowledge-title">STOCK MARKET</div>
+            <div class="knowledge-subtitle">Professional Trader Master Program — From Beginner to Global Investor</div>
+          </div>
+        </div>
+        <span class="summary-arrow">▼</span>
+      </summary>
+      <div class="knowledge-body">
+        <div class="k-intro glass">
+          <p>This manual distills <strong>25+ years of experience</strong> trading global markets, managing institutional capital, and developing algorithmic trading systems. Every concept, strategy, and routine has been battle-tested.</p>
+        </div>
+
+        <h3 class="k-section-title">📅 12-Week Master Learning Roadmap</h3>
+        <p class="k-para">Uses <strong>spiral learning</strong> — concepts introduced, reinforced, and built upon progressively. Each week requires 2–3 hours daily. Mastery comes from repetition, not cramming.</p>
+        <div class="table-scroll glass">
+          <table class="k-table">
+            <thead><tr><th>Week</th><th>Theme</th><th>Key Topics</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Foundations</td><td>Market structure, order types, trading platforms, economic calendar</td></tr>
+              <tr><td>2</td><td>Price Action Basics</td><td>Candlestick patterns, trends, support/resistance, range trading</td></tr>
+              <tr><td>3</td><td>Technical Analysis Deep Dive</td><td>Moving averages, RSI, volume, multiple timeframes, Fibonacci</td></tr>
+              <tr><td>4</td><td>Forex Trading</td><td>Major pairs, USD/INR, central banks, news trading, sessions</td></tr>
+              <tr><td>5</td><td>Indian Stock Market</td><td>NSE/BSE structure, FII/DII, sector rotation, gaps, F&amp;O data</td></tr>
+              <tr><td>6</td><td>US Stock Market</td><td>Pre/after hours, earnings, sector ETFs, order flow, patterns</td></tr>
+              <tr><td>7</td><td>Advanced Technical Analysis</td><td>Smart money concepts: market structure shifts, liquidity, order blocks, FVG</td></tr>
+              <tr><td>8</td><td>Risk Management</td><td>Position sizing, portfolio risk, R:R, drawdown, hedge fund methods</td></tr>
+              <tr><td>9</td><td>Strategy Design &amp; Backtesting</td><td>Building rules, backtesting, metrics, avoiding overfitting</td></tr>
+              <tr><td>10</td><td>AI &amp; Quantitative Trading</td><td>Data pipelines, feature engineering, ML models, signal generation</td></tr>
+              <tr><td>11</td><td>Global Investing &amp; Portfolio Management</td><td>LRS, taxes, diversification, asset allocation, rebalancing</td></tr>
+              <tr><td>12</td><td>Psychology, Routine &amp; Integration</td><td>Trading psychology, professional routine, journaling, next steps</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="k-section-title">📊 Technical Analysis (Professional Level)</h3>
+        <div class="k-grid">
+          <div class="k-card glass"><div class="k-card-icon">📐</div><h4>Market Structure Analysis</h4><p><strong>HH/HL</strong> = Bullish. <strong>LH/LL</strong> = Bearish. Wait for structure break confirmation before reversing bias. Break of Structure (BOS) and Change of Character (CHoCH) signal trend transitions.</p></div>
+          <div class="k-card glass"><div class="k-card-icon">🕯️</div><h4>Price Action Methods</h4><p>Key patterns: <strong>Pin Bar</strong> (rejection), <strong>Engulfing</strong> (reversal), <strong>Inside Bar</strong> (consolidation/breakout), <strong>Doji</strong> (indecision). Identify S/R → wait for pattern → enter on confirmation → stop beyond extreme.</p></div>
+          <div class="k-card glass"><div class="k-card-icon">🎯</div><h4>Supply &amp; Demand Zones</h4><p>Institutions think in <strong>zones</strong> where orders cluster — not lines. Supply Zone: sellers overwhelmed buyers. Demand Zone: buyers overwhelmed sellers. Fresh zones are more powerful than tested zones.</p></div>
+          <div class="k-card glass"><div class="k-card-icon">💧</div><h4>Liquidity &amp; Stop Hunts</h4><p>Institutions push price to <strong>grab stops</strong> before reversing. Never place stops at exact swing points. Wait for the stop hunt, then enter in the opposite direction for high-probability setups.</p></div>
+          <div class="k-card glass"><div class="k-card-icon">📦</div><h4>Smart Money Concepts (SMC)</h4><p><strong>Order Blocks:</strong> Last candle before impulsive move. <strong>Fair Value Gaps (FVG):</strong> Price inefficiencies where price may return. <strong>OTE:</strong> Confluence of FVG + Order Block + Fibonacci for ultra-high-probability entries.</p></div>
+          <div class="k-card glass"><div class="k-card-icon">🔢</div><h4>Volume &amp; Multi-Timeframe</h4><p>Rising price + Rising volume = Healthy trend. Rising price + Falling volume = Exhaustion warning. Use <strong>3 timeframes:</strong> HTF for direction, MTF for setup, LTF for entry precision.</p></div>
+        </div>
+
+        <h3 class="k-section-title">🛡️ Risk Management — Hedge Fund Methods</h3>
+        <div class="k-alert glass">
+          <h4>The Golden Rule</h4>
+          <p>Never risk more than you can afford to lose. Professionals risk <strong>0.5% to 2%</strong> per trade.</p>
+          <div class="k-formula">Position Size = (Account Risk $) ÷ (Stop Loss in $)
+Account Risk $ = Account Balance × Risk %
+
+Kelly % = W − [(1−W) / R]
+Where W = Win rate, R = Average Win / Average Loss</div>
+        </div>
+        <div class="table-scroll glass" style="margin-top:.5rem">
+          <table class="k-table">
+            <thead><tr><th>Strategy</th><th>Min R:R</th><th>Breakeven Win Rate</th><th>Pro Target</th></tr></thead>
+            <tbody>
+              <tr><td>Trend Following</td><td>1:2</td><td>33.3%</td><td>40–45%</td></tr>
+              <tr><td>Swing Trading</td><td>1:1.5</td><td>40%</td><td>45–50%</td></tr>
+              <tr><td>Scalping</td><td>1:1</td><td>50%</td><td>55–60%</td></tr>
+              <tr><td>Breakout Trading</td><td>1:2</td><td>33.3%</td><td>40–45%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="k-grid" style="margin-top:1rem">
+          <div class="k-card glass"><div class="k-card-icon">📉</div><h4>Drawdown Rules</h4><ul class="k-list"><li>Down 3% in a day → Stop trading immediately</li><li>Down 6% in a week → Take 3 days off, review</li><li>Down 10% in a month → Full strategy review</li><li>Down 20% from peak → System audit, back to demo</li></ul></div>
+          <div class="k-card glass"><div class="k-card-icon">🔒</div><h4>Capital Preservation</h4><ul class="k-list"><li>Every position has a stop at entry</li><li>Move stop to breakeven after 1R profit</li><li>Decrease size during drawdowns</li><li>Never double down to recover losses</li><li>Hold 20–50% cash in uncertain markets</li></ul></div>
+        </div>
+
+        <h3 class="k-section-title">⚙️ Professional Trading Strategies</h3>
+        <div class="k-grid">
+          <div class="k-card glass"><div class="k-card-icon">📈</div><h4>Trend Pullback</h4><p>Enter when price pulls back to 20 EMA with lower volume, forms bullish reversal candle, RSI 40–60. Stop below pullback low. Target: previous swing high (1.5R), then 3R with trailing stop.</p></div>
+          <div class="k-card glass"><div class="k-card-icon">💥</div><h4>Range Breakout</h4><p>Wait for volume &gt;1.5× average break above resistance. Conservative: wait for pullback to broken level. Stop inside range. Target = measured move (range height).</p></div>
+          <div class="k-card glass"><div class="k-card-icon">↩️</div><h4>Mean Reversion</h4><p>RSI &lt;30 + price below lower Bollinger Band + bullish divergence + volume spike on down day. Enter on first green candle. Targets: middle BB → upper BB.</p></div>
+          <div class="k-card glass"><div class="k-card-icon">🚀</div><h4>Gap and Go</h4><p>Gap up &gt;3% on volume &gt;2× average, breakaway gap type, holds above gap for 30–60 min. Enter above first 30-min high. Stop below gap level. Trail after 2R.</p></div>
+        </div>
+
+        <h3 class="k-section-title">🧠 Trader Psychology — 5 Major Traps</h3>
+        <div class="k-grid">
+          <div class="k-card glass trap-card"><div class="k-card-icon">🔄</div><h4>1. Overtrading</h4><p>Symptom: trading without setup conviction. Rule: <strong>max 3 trades/day</strong>. Require 10/10 conviction. Close platform after limit hit.</p></div>
+          <div class="k-card glass trap-card"><div class="k-card-icon">😰</div><h4>2. FOMO</h4><p>Chasing moves after they've started. Mantra: <em>"There will always be another trade. The market pays patience."</em> Accept missing moves.</p></div>
+          <div class="k-card glass trap-card"><div class="k-card-icon">😡</div><h4>3. Revenge Trading</h4><p>Rule: <strong>One loss = stop for the day.</strong> Review journal. Resume tomorrow with normal size. Never increase size after losses.</p></div>
+          <div class="k-card glass trap-card"><div class="k-card-icon">😟</div><h4>4. Emotional Decisions</h4><p>Framework: <em>"Plan the trade, trade the plan."</em> Predefine exact entry, stop, and target. Automate what you can. Emotion has no place in execution.</p></div>
+          <div class="k-card glass trap-card"><div class="k-card-icon">😴</div><h4>5. Lack of Discipline</h4><p>System: Treat trading as a business with set hours and procedures. Create real consequences for rule breaks. Have an accountability partner.</p></div>
+        </div>
+
+        <h3 class="k-section-title">⏰ Professional Daily Routine (IST)</h3>
+        <div class="k-timeline glass">
+          <div class="timeline-item"><span class="tl-time">08:00–08:30</span><span class="tl-text">Pre-market prep — global markets, economic calendar review</span></div>
+          <div class="timeline-item"><span class="tl-time">08:30–09:00</span><span class="tl-text">Technical analysis, watchlist update, set price alerts</span></div>
+          <div class="timeline-item"><span class="tl-time">09:00–09:15</span><span class="tl-text">Trading plan finalization — write bias, levels, risk limits</span></div>
+          <div class="timeline-item"><span class="tl-time">09:15–11:30</span><span class="tl-text">Indian session active trading (NSE opens 9:15 AM)</span></div>
+          <div class="timeline-item"><span class="tl-time">11:30–12:00</span><span class="tl-text">Break, lunch, mental reset — step away from screens</span></div>
+          <div class="timeline-item"><span class="tl-time">12:30–14:30</span><span class="tl-text">Rest / study / research (before London opens)</span></div>
+          <div class="timeline-item"><span class="tl-time">15:00–17:30</span><span class="tl-text">London session trading (highest forex volume)</span></div>
+          <div class="timeline-item"><span class="tl-time">18:00–20:30</span><span class="tl-text">London/NY overlap — maximum volatility, best setups</span></div>
+          <div class="timeline-item"><span class="tl-time">20:30–21:00</span><span class="tl-text">Post-market review, trade journal entries</span></div>
+          <div class="timeline-item"><span class="tl-time">21:00–21:30</span><span class="tl-text">Tomorrow's preview, mental close, transition to personal life</span></div>
+        </div>
+
+        <div class="k-quotes">
+          <blockquote class="k-quote glass">"The market is a device for transferring money from the impatient to the patient."<cite>— Warren Buffett</cite></blockquote>
+          <blockquote class="k-quote glass">"It's not about being right, it's about making money when you're right and losing as little as possible when you're wrong."<cite>— William O'Neil</cite></blockquote>
+          <blockquote class="k-quote glass">"The goal of a successful trader is to make the best trades. Money is secondary."<cite>— Alexander Elder</cite></blockquote>
+        </div>
+
+        <div class="k-conclusion glass">
+          <h3>Next Steps to Begin</h3>
+          <ol class="k-steps">
+            <li>Set up your workspace and open demo accounts on TradingView &amp; Zerodha.</li>
+            <li>Print or bookmark this manual — keep it accessible at all times.</li>
+            <li>Begin Week 1 tomorrow. Do not delay the start.</li>
+            <li>Join a trading community (TradingQ&amp;A, ForexFactory) for accountability.</li>
+            <li>Commit to the full 12 weeks without skipping or shortcuts.</li>
+          </ol>
+          <p class="k-cta">Welcome to the professional trading world. <strong>The markets await.</strong></p>
+        </div>
+      </div>
+    </details>
+
+  </main>
+</div>
+
+<!-- ============================================================
+     ADD / EDIT TASK MODAL
+============================================================ -->
+<div id="task-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal glass">
+    <div class="modal-header">
+      <h3 id="modal-title">➕ Add New Task</h3>
+      <button class="close-btn" id="close-modal-btn" aria-label="Close modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-id"/>
+      <div class="form-group">
+        <label for="task-title">Task Title *</label>
+        <input type="text" id="task-title" placeholder="Enter task title…" class="form-input" required/>
+      </div>
+      <div class="form-group">
+        <label for="task-desc">Task Description</label>
+        <div class="textarea-wrap">
+          <textarea id="task-desc" placeholder="Describe your task…" class="form-textarea" rows="3"></textarea>
+          <button class="voice-btn" id="voice-btn" title="Voice to text (click to start/stop)" type="button">🎤</button>
+        </div>
+        <span id="voice-status" class="voice-status" aria-live="polite"></span>
+      </div>
+      <div class="form-row">
+        <div class="form-group half">
+          <label for="task-start">Start Time</label>
+          <input type="time" id="task-start" class="form-input"/>
+        </div>
+        <div class="form-group half">
+          <label for="task-end">End Time</label>
+          <input type="time" id="task-end" class="form-input"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="task-duration">Time Needed to Complete</label>
+        <select id="task-duration" class="form-input">
+          <option value="15">15 minutes</option>
+          <option value="30" selected>30 minutes</option>
+          <option value="45">45 minutes</option>
+          <option value="60">1 hour</option>
+          <option value="90">1.5 hours</option>
+          <option value="120">2 hours</option>
+          <option value="180">3 hours</option>
+          <option value="240">4 hours</option>
+          <option value="480">8 hours</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="cancel-modal-btn">Cancel</button>
+      <button class="btn-primary" id="save-task-btn">Save Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" id="fab-btn" title="Add Task (Ctrl+N)" aria-label="Add new task">+</button>
+
+<!-- TOAST -->
+<div id="toast" class="hidden glass" role="alert" aria-live="assertive">
+  <span id="toast-message"></span>
+  <button id="toast-undo">Undo</button>
+</div>
+
+<!-- ============================================================
+     SCRIPT
+============================================================ -->
+<script>
+(function() {
+'use strict';
+
+/* ---- STATE ---- */
+let tasks = [];
+let completedTasks = [];
+let currentUser = null;
+let deletedTask = null;
+let undoTimeout = null;
+let searchTerm = '';
+let tickInterval = null;
+let recognition = null;
+let voiceActive = false;
+let audioEnabled = false;
+
+/* ---- PASSWORD HASHING (SHA-256 via SubtleCrypto) ---- */
+async function hashPass(pass) {
+  try {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pass));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  } catch(e) {
+    // Fallback: simple obfuscation (SubtleCrypto not available in HTTP)
+    let h = 0;
+    for (let i = 0; i < pass.length; i++) { h = ((h << 5) - h) + pass.charCodeAt(i); h |= 0; }
+    return String(Math.abs(h));
+  }
+}
+
+/* ---- AUTH ---- */
+document.getElementById('go-signup').addEventListener('click', () => {
+  document.getElementById('signup-form').classList.add('active');
+  document.getElementById('signin-form').classList.remove('active');
+});
+document.getElementById('go-signin').addEventListener('click', () => {
+  document.getElementById('signin-form').classList.add('active');
+  document.getElementById('signup-form').classList.remove('active');
+});
+
+document.getElementById('btn-signup').addEventListener('click', async () => {
+  const name  = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('signup-password').value;
+  const err   = document.getElementById('signup-error');
+  if (!name || !email || !pass) { err.textContent = 'All fields are required.'; return; }
+  if (pass.length < 6)          { err.textContent = 'Password must be at least 6 characters.'; return; }
+  if (!email.includes('@'))     { err.textContent = 'Enter a valid email address.'; return; }
+  const users = JSON.parse(localStorage.getItem('tf_users') || '[]');
+  if (users.find(u => u.email === email)) { err.textContent = 'Account already exists. Sign in.'; return; }
+  const hashed = await hashPass(pass);
+  const user = { name, email, pass: hashed };
+  users.push(user);
+  localStorage.setItem('tf_users', JSON.stringify(users));
+  localStorage.setItem('tf_session', JSON.stringify({ email, name }));
+  err.textContent = '';
+  launchApp(user);
+});
+
+document.getElementById('btn-signin').addEventListener('click', async () => {
+  const email = document.getElementById('signin-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('signin-password').value;
+  const err   = document.getElementById('signin-error');
+  if (!email || !pass) { err.textContent = 'Email and password required.'; return; }
+  const users = JSON.parse(localStorage.getItem('tf_users') || '[]');
+  const hashed = await hashPass(pass);
+  const user = users.find(u => u.email === email && u.pass === hashed);
+  if (!user) { err.textContent = 'Invalid credentials.'; return; }
+  localStorage.setItem('tf_session', JSON.stringify({ email: user.email, name: user.name }));
+  err.textContent = '';
+  launchApp(user);
+});
+
+// Enter key on auth inputs
+document.getElementById('signin-password').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btn-signin').click(); });
+document.getElementById('signup-password').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btn-signup').click(); });
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+  if (!confirm('Log out of TaskFlow?')) return;
+  clearInterval(tickInterval);
+  stopVoice();
+  localStorage.removeItem('tf_session');
+  currentUser = null;
+  tasks = []; completedTasks = [];
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('signin-form').classList.add('active');
+  document.getElementById('signup-form').classList.remove('active');
+});
+
+function launchApp(user) {
+  currentUser = user;
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').classList.remove('hidden');
+  loadData();
+  loadTheme();
+  startClock();
+  initNotifications();
+  renderAll();
+  setInterval(renderAll, 30000); // refresh progress bars every 30s
+}
+
+/* ---- PERSISTENCE ---- */
+function saveData() {
+  if (!currentUser) return;
+  localStorage.setItem('tf_' + currentUser.email, JSON.stringify({ tasks, completedTasks }));
+}
+function loadData() {
+  if (!currentUser) return;
+  const raw = localStorage.getItem('tf_' + currentUser.email);
+  if (raw) {
+    try { const d = JSON.parse(raw); tasks = d.tasks||[]; completedTasks = d.completedTasks||[]; }
+    catch(e) { tasks=[]; completedTasks=[]; }
+  } else { tasks=[]; completedTasks=[]; }
+}
+
+/* ---- CLOCK (IST) ---- */
+function startClock() {
+  updateClock();
+  tickInterval = setInterval(updateClock, 1000);
+}
+function updateClock() {
+  const now = new Date();
+  const tStr = now.toLocaleTimeString('en-IN', { timeZone:'Asia/Kolkata', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
+  // tStr may be "12:05:30 PM" or "12:05:30 am" — split on space
+  const parts = tStr.split(' ');
+  document.getElementById('clock-time').textContent  = parts[0] || tStr;
+  document.getElementById('clock-ampm').textContent  = (parts[1] || '').toUpperCase();
+  document.getElementById('current-date').textContent = now.toLocaleDateString('en-IN', { timeZone:'Asia/Kolkata', weekday:'short', year:'numeric', month:'short', day:'numeric' });
+}
+
+/* ---- THEME ---- */
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  const dark = document.body.classList.toggle('dark-mode');
+  document.body.classList.toggle('light-mode', !dark);
+  document.getElementById('theme-toggle').textContent = dark ? '☀️' : '🌙';
+  localStorage.setItem('tf_theme', dark ? 'dark' : 'light');
+});
+function loadTheme() {
+  if (localStorage.getItem('tf_theme') === 'dark') {
+    document.body.classList.add('dark-mode');
+    document.body.classList.remove('light-mode');
+    document.getElementById('theme-toggle').textContent = '☀️';
+  }
+}
+
+/* ---- MODAL ---- */
+const modal    = document.getElementById('task-modal');
+const modalTtl = document.getElementById('modal-title');
+const editIdEl = document.getElementById('edit-id');
+
+function openAddModal() {
+  modalTtl.textContent = '➕ Add New Task';
+  editIdEl.value = '';
+  document.getElementById('task-title').value = '';
+  document.getElementById('task-desc').value  = '';
+  document.getElementById('task-duration').value = '30';
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  document.getElementById('task-start').value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const e = new Date(now.getTime() + 3600000);
+  document.getElementById('task-end').value   = `${pad(e.getHours())}:${pad(e.getMinutes())}`;
+  modal.classList.remove('hidden');
+  setTimeout(() => document.getElementById('task-title').focus(), 80);
+}
+
+function openEditModal(task) {
+  modalTtl.textContent = '✏️ Edit Task';
+  editIdEl.value = task.id;
+  document.getElementById('task-title').value    = task.title;
+  document.getElementById('task-desc').value     = task.desc || '';
+  document.getElementById('task-start').value    = task.start || '';
+  document.getElementById('task-end').value      = task.end   || '';
+  document.getElementById('task-duration').value = task.duration || 30;
+  modal.classList.remove('hidden');
+  setTimeout(() => document.getElementById('task-title').focus(), 80);
+}
+
+function closeModal() {
+  modal.classList.add('hidden');
+  stopVoice();
+}
+
+document.getElementById('close-modal-btn').addEventListener('click', closeModal);
+document.getElementById('cancel-modal-btn').addEventListener('click', closeModal);
+modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+document.getElementById('save-task-btn').addEventListener('click', () => {
+  const title    = document.getElementById('task-title').value.trim();
+  const desc     = document.getElementById('task-desc').value.trim();
+  const start    = document.getElementById('task-start').value;
+  const end      = document.getElementById('task-end').value;
+  const duration = parseInt(document.getElementById('task-duration').value, 10);
+  const id       = editIdEl.value;
+
+  if (!title) { alert('Task title is required!'); return; }
+  if (start && end && start >= end) { alert('End time must be after start time.'); return; }
+
+  const now = Date.now();
+  const base = {
+    title, desc, start, end, duration,
+    deadline: now + duration * 60000,
+    date: new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })
+  };
+
+  if (id) {
+    const idx = tasks.findIndex(t => t.id == id);
+    if (idx !== -1) tasks[idx] = { ...tasks[idx], ...base, id: Number(id) };
+  } else {
+    tasks.unshift({ ...base, id: now, createdAt: now, completion: 0 });
+    // 🔔 Notify new task
+    addNotif({
+      type:'info', icon:'📋',
+      title:'New Task Added',
+      msg:`"${title}" scheduled for ${base.start ? fmt12(base.start) : 'today'}. Duration: ${duration >= 60 ? (duration/60)+'h' : duration+'m'}.`
+    });
+  }
+  saveData();
+  renderAll();
+  closeModal();
+});
+
+/* ---- TASK ACTIONS ---- */
+function completeTask(id) {
+  const idx = tasks.findIndex(t => t.id === id);
+  if (idx === -1) return;
+  const task = { ...tasks[idx] };
+  task.completedAt = new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true, timeZone:'Asia/Kolkata' });
+  completedTasks.unshift(task);
+  tasks.splice(idx, 1);
+  saveData();
+  playSuccess();
+  // 🔔 Notify
+  addNotif({
+    type:'success', icon:'🎉',
+    title:'Task Completed!',
+    msg:`"${task.title}" marked done at ${task.completedAt}. ${task.completion}% was recorded.`
+  });
+  renderAll();
+}
+
+function deleteTask(id) {
+  const idx = tasks.findIndex(t => t.id === id);
+  if (idx === -1) return;
+  deletedTask = tasks[idx];
+  tasks.splice(idx, 1);
+  saveData();
+  renderAll();
+  playDelete();
+  showToast('Task deleted.', () => {
+    tasks.unshift(deletedTask);
+    deletedTask = null;
+    saveData();
+    renderAll();
+  });
+}
+
+function deleteCompleted(id) {
+  completedTasks = completedTasks.filter(t => t.id !== id);
+  saveData();
+  renderAll();
+}
+
+function editTask(id) {
+  const task = tasks.find(t => t.id === id);
+  if (task) openEditModal(task);
+}
+
+function updateCompletion(id, val) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  const prev = task.completion;
+  task.completion = parseInt(val, 10);
+  saveData();
+  // Surgical DOM update — no full re-render
+  ['', '_m_'].forEach(sfx => {
+    const fill = document.getElementById(`cfill${sfx}${id}`);
+    const lbl  = document.getElementById(`clbl${sfx}${id}`);
+    if (fill) { fill.style.width = val + '%'; fill.className = 'progress-fill task' + (val < 30 ? ' danger' : ''); }
+    if (lbl)  lbl.textContent = val + '%';
+  });
+  updateStats();
+  // 🔔 Milestone notifications at 25 / 50 / 75 / 100 %
+  const milestones = [25, 50, 75, 100];
+  milestones.forEach(m => {
+    const mKey = `cp${m}_${id}`;
+    if (!notifFired[mKey] && prev < m && task.completion >= m) {
+      notifFired[mKey] = true;
+      const msgs = {
+        25:  { icon:'🚀', type:'info',    msg:`"${task.title}" is 25% complete. Keep going!` },
+        50:  { icon:'⚡', type:'info',    msg:`"${task.title}" is halfway done! 50% complete.` },
+        75:  { icon:'🔥', type:'warning', msg:`"${task.title}" is 75% complete. Almost there!` },
+        100: { icon:'🏆', type:'success', msg:`"${task.title}" is 100% complete! Hit ✔ Complete to finish.` },
+      };
+      const { icon, type, msg } = msgs[m];
+      addNotif({ type, icon, title:`${m}% Milestone Reached`, msg });
+      saveNotifState();
+    }
+  });
+}
+
+document.getElementById('reset-all-btn').addEventListener('click', () => {
+  if (!confirm('Delete ALL tasks and completed tasks? This cannot be undone.')) return;
+  tasks = []; completedTasks = []; deletedTask = null;
+  saveData();
+  renderAll();
+});
+
+/* ---- SEARCH ---- */
+document.getElementById('search-input').addEventListener('input', e => {
+  searchTerm = e.target.value.toLowerCase();
+  renderAll();
+});
+document.getElementById('clear-search').addEventListener('click', () => {
+  document.getElementById('search-input').value = '';
+  searchTerm = '';
+  renderAll();
+});
+function filtered(list) {
+  if (!searchTerm) return list;
+  return list.filter(t =>
+    t.title.toLowerCase().includes(searchTerm) ||
+    (t.desc && t.desc.toLowerCase().includes(searchTerm))
+  );
+}
+
+/* ---- RENDER ---- */
+function renderAll() {
+  renderActive();
+  renderCompleted();
+  updateStats();
+}
+
+function renderActive() {
+  const tbody = document.getElementById('task-table-body');
+  const cards = document.getElementById('task-cards');
+  const empty = document.getElementById('no-tasks');
+  const list  = filtered(tasks);
+
+  tbody.innerHTML = '';
+  cards.innerHTML = '';
+
+  if (list.length === 0) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  list.forEach(task => {
+    const remainMs = task.deadline - Date.now();
+    const elapsed  = Date.now() - (task.createdAt || task.deadline - task.duration * 60000);
+    const timePct  = Math.min(100, Math.max(0, Math.floor(elapsed / (task.duration * 60000) * 100)));
+    const overdue  = remainMs <= 0;
+    const cp       = task.completion;
+    const timeStr  = `${fmt12(task.start)} → ${fmt12(task.end)}`;
+    const remStr   = fmtRem(remainMs);
+    const durStr   = task.duration >= 60 ? (task.duration/60)+'h' : task.duration+'m';
+
+    /* TABLE ROW */
+    const tr = document.createElement('tr');
+    if (overdue) tr.className = 'overdue';
+    tr.innerHTML = `
+      <td>${task.date}</td>
+      <td><span style="font-size:.8rem;font-family:var(--mono)">${timeStr}</span></td>
+      <td>
+        <div style="font-weight:600;font-size:.875rem">${esc(task.title)}</div>
+        ${task.desc ? `<div style="font-size:.75rem;color:var(--text2);margin-top:3px">${esc(task.desc)}</div>` : ''}
+      </td>
+      <td style="font-family:var(--mono);font-size:.8rem">${durStr}</td>
+      <td>
+        <span style="font-family:var(--mono);font-size:.8rem;color:${overdue?'var(--danger)':'var(--text)'}">${remStr}</span>
+        <div class="progress-bar" style="margin-top:5px">
+          <div class="progress-fill time" style="width:${timePct}%"></div>
+        </div>
+      </td>
+      <td>
+        <div class="completion-wrap">
+          <input type="range" min="0" max="100" value="${cp}" class="completion-input"
+            oninput="updateCompletion(${task.id},this.value)"/>
+          <div style="min-width:80px">
+            <div class="progress-label"><span>Done</span><span id="clbl_${task.id}">${cp}%</span></div>
+            <div class="progress-bar">
+              <div id="cfill_${task.id}" class="progress-fill task ${cp<30?'danger':''}" style="width:${cp}%"></div>
+            </div>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div class="actions-cell">
+          <button class="act-btn act-complete" onclick="completeTask(${task.id})">✔ Complete</button>
+          <button class="act-btn act-edit"     onclick="editTask(${task.id})">✏️ Edit</button>
+          <button class="act-btn act-delete"   onclick="deleteTask(${task.id})">🗑 Delete</button>
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+
+    /* MOBILE CARD */
+    const card = document.createElement('div');
+    card.className = 'task-card glass' + (overdue ? ' overdue' : '');
+    card.innerHTML = `
+      <div class="card-title">${esc(task.title)}</div>
+      ${task.desc ? `<div class="card-desc">${esc(task.desc)}</div>` : ''}
+      <div class="card-meta">
+        <span class="card-badge">📅 ${task.date}</span>
+        <span class="card-badge">🕐 ${timeStr}</span>
+        <span class="card-badge" style="${overdue?'color:var(--danger);background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2)':''}">
+          ${overdue ? '⚠️ Overdue' : '⏱ ' + remStr}
+        </span>
+      </div>
+      <div class="card-progress">
+        <div class="progress-label"><span>Time Used (${timePct}%)</span></div>
+        <div class="progress-bar"><div class="progress-fill time" style="width:${timePct}%"></div></div>
+        <div class="progress-label"><span>Completion</span><span id="clbl_m_${task.id}">${cp}%</span></div>
+        <div class="progress-bar"><div id="cfill_m_${task.id}" class="progress-fill task ${cp<30?'danger':''}" style="width:${cp}%"></div></div>
+        <input type="range" min="0" max="100" value="${cp}" style="width:100%;margin-top:4px"
+          oninput="updateCompletion(${task.id},this.value)"/>
+      </div>
+      <div class="card-actions">
+        <button class="act-btn act-complete" onclick="completeTask(${task.id})">✔ Complete</button>
+        <button class="act-btn act-edit"     onclick="editTask(${task.id})">✏️ Edit</button>
+        <button class="act-btn act-delete"   onclick="deleteTask(${task.id})">🗑 Delete</button>
+      </div>`;
+    cards.appendChild(card);
+  });
+}
+
+function renderCompleted() {
+  const tbody = document.getElementById('completed-table-body');
+  const cards = document.getElementById('completed-cards');
+  const empty = document.getElementById('no-completed');
+  const list  = filtered(completedTasks);
+
+  tbody.innerHTML = '';
+  cards.innerHTML = '';
+
+  if (list.length === 0) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  list.forEach(task => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${task.date}</td>
+      <td>
+        <div style="font-weight:600">${esc(task.title)}</div>
+        ${task.desc ? `<div style="font-size:.75rem;color:var(--text2);margin-top:2px">${esc(task.desc)}</div>` : ''}
+      </td>
+      <td style="font-size:.8rem;font-family:var(--mono)">${fmt12(task.start)} → ${fmt12(task.end)}</td>
+      <td><span class="completed-badge">✅ ${task.completedAt || 'Done'}</span></td>
+      <td><button class="act-btn act-delete" onclick="deleteCompleted(${task.id})">🗑 Remove</button></td>`;
+    tbody.appendChild(tr);
+
+    const card = document.createElement('div');
+    card.className = 'task-card glass';
+    card.style.cssText = 'border-left:4px solid var(--success);';
+    card.innerHTML = `
+      <div class="card-title">✅ ${esc(task.title)}</div>
+      ${task.desc ? `<div class="card-desc">${esc(task.desc)}</div>` : ''}
+      <div class="card-meta">
+        <span class="card-badge">📅 ${task.date}</span>
+        <span class="card-badge" style="color:var(--success);background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.2)">
+          ✔ ${task.completedAt || 'Done'}
+        </span>
+      </div>
+      <div class="card-actions">
+        <button class="act-btn act-delete" onclick="deleteCompleted(${task.id})">🗑 Remove</button>
+      </div>`;
+    cards.appendChild(card);
+  });
+}
+
+function updateStats() {
+  const total = tasks.length + completedTasks.length;
+  const done  = completedTasks.length;
+  const pct   = total > 0 ? Math.round(done / total * 100) : 0;
+  document.getElementById('stat-total').textContent   = total;
+  document.getElementById('stat-active').textContent  = tasks.length;
+  document.getElementById('stat-done').textContent    = done;
+  document.getElementById('stat-percent').textContent = pct + '%';
+  document.getElementById('productivity-badge').textContent = pct + '% 🎯';
+}
+
+/* ---- VOICE TO TEXT ---- */
+document.getElementById('voice-btn').addEventListener('click', toggleVoice);
+function toggleVoice() {
+  if (voiceActive) { stopVoice(); return; }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { document.getElementById('voice-status').textContent = '⚠ Voice not supported in this browser'; return; }
+  recognition = new SR();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = 'en-IN';
+  const ta = document.getElementById('task-desc');
+  const base = ta.value;
+  recognition.onresult = e => {
+    let final = base, interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    ta.value = final + interim;
+  };
+  recognition.onerror = () => stopVoice();
+  recognition.onend   = () => { if (voiceActive) recognition.start(); };
+  recognition.start();
+  voiceActive = true;
+  document.getElementById('voice-btn').classList.add('active');
+  document.getElementById('voice-btn').textContent = '⏹';
+  document.getElementById('voice-status').textContent = '🎙 Listening…';
+}
+function stopVoice() {
+  if (recognition) { try { recognition.stop(); } catch(e){} recognition = null; }
+  voiceActive = false;
+  const btn = document.getElementById('voice-btn');
+  if (btn) { btn.classList.remove('active'); btn.textContent = '🎤'; }
+  const st = document.getElementById('voice-status');
+  if (st) st.textContent = '';
+}
+
+/* ---- TOAST ---- */
+const toast    = document.getElementById('toast');
+const toastMsg = document.getElementById('toast-message');
+const toastUndo= document.getElementById('toast-undo');
+
+function showToast(msg, undoCb) {
+  if (undoTimeout) clearTimeout(undoTimeout);
+  toastMsg.textContent = msg;
+  toast.classList.remove('hidden');
+  toastUndo.onclick = () => { undoCb(); toast.classList.add('hidden'); if(undoTimeout) clearTimeout(undoTimeout); };
+  undoTimeout = setTimeout(() => { toast.classList.add('hidden'); deletedTask = null; }, 5000);
+}
+
+/* ---- SOUND ---- */
+document.addEventListener('click', () => audioEnabled = true, { once: true });
+function playSuccess() {
+  if (!audioEnabled) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = freq; o.type = 'sine';
+      const t = ctx.currentTime + i * 0.12;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.18, t + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      o.start(t); o.stop(t + 0.35);
+    });
+  } catch(e) {}
+}
+function playDelete() {
+  if (!audioEnabled) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(300, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.2);
+    g.gain.setValueAtTime(0.1, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+    o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.2);
+  } catch(e) {}
+}
+
+/* ---- UTILS ---- */
+function fmt12(t) {
+  if (!t) return '—';
+  const [h, m] = t.split(':').map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${h >= 12 ? 'PM' : 'AM'}`;
+}
+function fmtRem(ms) {
+  if (ms <= 0) return 'Overdue';
+  const tot = Math.floor(ms / 60000);
+  if (tot < 60) return tot + ' min';
+  const h = Math.floor(tot / 60), m = tot % 60;
+  return m ? `${h}h ${m}m` : `${h}h`;
+}
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+
+/* ============================================================
+   NOTIFICATION SYSTEM
+============================================================ */
+
+// ---- State ----
+let notifList     = [];       // { id, type, icon, title, msg, time, read }
+let notifSettings = {
+  enabled:  true,
+  reminder: true,   // 10-min before task start
+  deadline: true,   // 75% / 90% time elapsed warnings
+  overdue:  true,   // task past deadline
+  progress: true,   // low completion at midpoint
+  summary:  true,   // daily summary at 20:30 IST
+  snack:    true,   // in-app snackbars
+};
+let notifFired    = {};       // { taskId_eventKey: true } — prevent duplicates
+let notifInterval = null;
+const NOTIF_STORE = 'tf_notif_';
+const NOTIF_FIRED = 'tf_notif_fired_';
+const NOTIF_SETT  = 'tf_notif_sett';
+
+// ---- Helpers ----
+function saveNotifState() {
+  if (!currentUser) return;
+  localStorage.setItem(NOTIF_STORE + currentUser.email, JSON.stringify(notifList));
+  localStorage.setItem(NOTIF_FIRED + currentUser.email, JSON.stringify(notifFired));
+  localStorage.setItem(NOTIF_SETT,  JSON.stringify(notifSettings));
+}
+function loadNotifState() {
+  try { notifSettings = { ...notifSettings, ...JSON.parse(localStorage.getItem(NOTIF_SETT) || '{}') }; } catch(e){}
+  if (!currentUser) return;
+  try { notifList  = JSON.parse(localStorage.getItem(NOTIF_STORE + currentUser.email) || '[]'); } catch(e){ notifList=[]; }
+  try { notifFired = JSON.parse(localStorage.getItem(NOTIF_FIRED + currentUser.email) || '{}'); } catch(e){ notifFired={}; }
+  // trim to last 50
+  if (notifList.length > 50) { notifList = notifList.slice(0, 50); }
+}
+function unreadCount() { return notifList.filter(n => !n.read).length; }
+
+// ---- Badge ----
+function updateBadge() {
+  const n   = unreadCount();
+  const el  = document.getElementById('notif-badge');
+  if (!el) return;
+  if (n > 0) {
+    el.textContent = n > 99 ? '99+' : n;
+    el.classList.remove('hidden');
+    el.classList.add('pop');
+    setTimeout(() => el.classList.remove('pop'), 300);
+  } else {
+    el.classList.add('hidden');
+  }
+}
+
+// ---- Add a notification entry ----
+function addNotif({ type = 'info', icon = '🔔', title, msg }) {
+  const now  = new Date();
+  const time = now.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true, timeZone:'Asia/Kolkata' });
+  const entry = { id: Date.now() + Math.random(), type, icon, title, msg, time, read: false };
+  notifList.unshift(entry);
+  if (notifList.length > 50) notifList = notifList.slice(0, 50);
+  saveNotifState();
+  renderNotifPanel();
+  updateBadge();
+  // in-app snackbar
+  if (notifSettings.snack) showSnack({ icon, title, msg, type });
+  // OS notification
+  if (notifSettings.enabled) sendOSNotif(title, msg, icon);
+}
+
+// ---- OS (Push) Notification ----
+function sendOSNotif(title, body, icon) {
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+  try {
+    const n = new Notification('⚡ TaskFlow — ' + title, {
+      body,
+      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">⚡</text></svg>',
+      badge:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">⚡</text></svg>',
+      tag: 'taskflow-' + Date.now(),
+      requireInteraction: false,
+    });
+    setTimeout(() => n.close(), 8000);
+    n.onclick = () => { window.focus(); n.close(); openNotifPanel(); };
+  } catch(e) {}
+}
+
+// ---- Permission ----
+async function requestNotifPermission() {
+  if (!('Notification' in window)) {
+    updatePermStatus('Not supported in this browser', '#ef4444');
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    updatePermStatus('✅ Notifications enabled', '#22c55e');
+    return;
+  }
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    updatePermStatus('✅ Notifications enabled', '#22c55e');
+    document.getElementById('notif-perm-strip').classList.add('hidden');
+    addNotif({ type:'success', icon:'✅', title:'Notifications Enabled', msg:'You\'ll now receive task alerts on this device.' });
+  } else {
+    updatePermStatus('❌ Blocked — check browser settings', '#ef4444');
+  }
+}
+function updatePermStatus(text, color) {
+  const el = document.getElementById('notif-perm-status');
+  if (el) { el.textContent = text; el.style.color = color; }
+}
+function checkPermStatus() {
+  if (!('Notification' in window)) { updatePermStatus('Not supported', '#8890aa'); return; }
+  if (Notification.permission === 'granted') {
+    updatePermStatus('✅ Enabled', '#22c55e');
+    document.getElementById('notif-perm-strip').classList.add('hidden');
+  } else if (Notification.permission === 'denied') {
+    updatePermStatus('❌ Blocked', '#ef4444');
+    document.getElementById('notif-perm-strip').classList.remove('hidden');
+  } else {
+    updatePermStatus('⚠️ Not yet granted', '#f59e0b');
+    document.getElementById('notif-perm-strip').classList.remove('hidden');
+  }
+}
+
+// ---- In-App Snackbar ----
+const snackQ = [];
+let snackShowing = false;
+function showSnack({ icon, title, msg, type, duration = 5000 }) {
+  snackQ.push({ icon, title, msg, type, duration });
+  if (!snackShowing) drainSnack();
+}
+function drainSnack() {
+  if (!snackQ.length) { snackShowing = false; return; }
+  snackShowing = true;
+  const { icon, title, msg, type, duration } = snackQ.shift();
+  const container = document.getElementById('snack-container');
+  const el = document.createElement('div');
+  el.className = 'notif-snack glass';
+  el.style.position = 'fixed';
+  el.style.top = 'calc(var(--nav-h) + 12px)';
+  el.style.right = '1.5rem';
+  el.style.zIndex = '999';
+  // accent color per type
+  const colors = { warning:'#f59e0b', danger:'#ef4444', success:'#22c55e', info:'#5c6ef8' };
+  el.innerHTML = `
+    <div class="snack-icon">${icon}</div>
+    <div class="snack-body">
+      <div class="snack-title" style="color:${colors[type]||colors.info}">${title}</div>
+      <div class="snack-msg">${msg}</div>
+    </div>
+    <button class="snack-close" aria-label="Close">✕</button>
+    <div class="snack-progress" style="animation-duration:${duration}ms"></div>`;
+  el.querySelector('.snack-close').onclick = () => removeSnack(el);
+  el.onclick = e => { if (e.target.classList.contains('snack-close')) return; openNotifPanel(); removeSnack(el); };
+  container.appendChild(el);
+  const timer = setTimeout(() => removeSnack(el), duration);
+  el._timer = timer;
+}
+function removeSnack(el) {
+  if (el._timer) clearTimeout(el._timer);
+  el.classList.add('hiding');
+  setTimeout(() => { el.remove(); setTimeout(drainSnack, 300); }, 300);
+}
+
+// ---- Render notification panel ----
+function renderNotifPanel() {
+  const list = document.getElementById('notif-list');
+  if (!list) return;
+  if (notifList.length === 0) {
+    list.innerHTML = '<div class="notif-empty"><div class="notif-empty-icon">🔕</div>No notifications yet</div>';
+    return;
+  }
+  list.innerHTML = '';
+  notifList.forEach(n => {
+    const item = document.createElement('div');
+    item.className = `notif-item type-${n.type}` + (n.read ? '' : ' unread');
+    item.dataset.id = n.id;
+    item.innerHTML = `
+      <div class="notif-icon-wrap">${n.icon}</div>
+      <div class="notif-body">
+        <div class="notif-title">${n.title}</div>
+        <div class="notif-msg">${n.msg}</div>
+        <div class="notif-time">${n.time}</div>
+      </div>
+      <button class="notif-dismiss" data-nid="${n.id}" aria-label="Dismiss">✕</button>`;
+    item.addEventListener('click', e => {
+      if (e.target.classList.contains('notif-dismiss')) return;
+      n.read = true; saveNotifState(); item.classList.remove('unread'); updateBadge();
+    });
+    item.querySelector('.notif-dismiss').addEventListener('click', e => {
+      e.stopPropagation();
+      notifList = notifList.filter(x => x.id !== n.id);
+      saveNotifState(); renderNotifPanel(); updateBadge();
+    });
+    list.appendChild(item);
+  });
+}
+
+// ---- Open / close panel ----
+let panelOpen = false;
+function openNotifPanel() {
+  const panel = document.getElementById('notif-panel');
+  panel.classList.remove('hidden');
+  panelOpen = true;
+  // mark all as read when opened
+  notifList.forEach(n => n.read = true);
+  saveNotifState();
+  renderNotifPanel();
+  updateBadge();
+}
+function closeNotifPanel() {
+  document.getElementById('notif-panel').classList.add('hidden');
+  panelOpen = false;
+}
+function toggleNotifPanel() { panelOpen ? closeNotifPanel() : openNotifPanel(); }
+
+// ---- Smart scheduler: runs every 60 seconds ----
+function runNotifScheduler() {
+  if (!currentUser || !notifSettings.enabled) return;
+  const now = Date.now();
+  const nowIST = new Date(new Date().toLocaleString('en-US', { timeZone:'Asia/Kolkata' }));
+  const hhmm = nowIST.getHours() * 60 + nowIST.getMinutes();
+
+  tasks.forEach(task => {
+    const elapsed  = now - (task.createdAt || task.deadline - task.duration * 60000);
+    const totalMs  = task.duration * 60000;
+    const pct      = Math.min(100, elapsed / totalMs);
+    const remainMs = task.deadline - now;
+    const cp       = task.completion || 0;
+    const name     = task.title;
+
+    // ---- 10-min reminder before start ----
+    if (notifSettings.reminder && task.start) {
+      const [sh, sm] = task.start.split(':').map(Number);
+      const startMin = sh * 60 + sm;
+      const key = `rem_${task.id}`;
+      if (!notifFired[key] && hhmm >= startMin - 11 && hhmm <= startMin - 9) {
+        notifFired[key] = true;
+        addNotif({ type:'info', icon:'⏰', title:'Upcoming Task', msg:`"${name}" starts in ~10 minutes. Completion: ${cp}%` });
+      }
+    }
+
+    // ---- 75% time elapsed ----
+    if (notifSettings.deadline) {
+      const k75 = `d75_${task.id}`;
+      if (!notifFired[k75] && pct >= 0.75 && pct < 0.9) {
+        notifFired[k75] = true;
+        const remMin = Math.max(0, Math.round(remainMs / 60000));
+        addNotif({ type:'warning', icon:'⚠️', title:'75% Time Used', msg:`"${name}" — ${remMin} min left. You're ${cp}% done.` });
+      }
+      // ---- 90% time elapsed ----
+      const k90 = `d90_${task.id}`;
+      if (!notifFired[k90] && pct >= 0.9 && remainMs > 0) {
+        notifFired[k90] = true;
+        addNotif({ type:'danger', icon:'🔴', title:'Almost Out of Time!', msg:`"${name}" — only ${Math.round(remainMs/60000)} min left! ${cp}% complete.` });
+      }
+    }
+
+    // ---- Overdue ----
+    if (notifSettings.overdue) {
+      const kOD = `od_${task.id}`;
+      if (!notifFired[kOD] && remainMs <= 0) {
+        notifFired[kOD] = true;
+        addNotif({ type:'danger', icon:'🚨', title:'Task Overdue!', msg:`"${name}" has passed its deadline. ${cp}% was completed.` });
+      }
+    }
+
+    // ---- Progress check-in at midpoint ----
+    if (notifSettings.progress) {
+      const kMid = `mid_${task.id}`;
+      if (!notifFired[kMid] && pct >= 0.5 && pct < 0.6 && cp < 30) {
+        notifFired[kMid] = true;
+        addNotif({ type:'warning', icon:'📊', title:'Low Progress Warning', msg:`"${name}" is 50% through time but only ${cp}% complete. Time to focus!` });
+      }
+    }
+  });
+
+  // ---- Daily summary at 20:30 IST ----
+  if (notifSettings.summary) {
+    const summaryKey = `daily_${nowIST.toDateString()}`;
+    if (!notifFired[summaryKey] && hhmm >= 20 * 60 + 29 && hhmm <= 20 * 60 + 31) {
+      notifFired[summaryKey] = true;
+      const total = tasks.length + completedTasks.length;
+      const done  = completedTasks.length;
+      const pct   = total ? Math.round(done / total * 100) : 0;
+      const pendingOverdue = tasks.filter(t => t.deadline < now).length;
+      addNotif({
+        type: pct >= 70 ? 'success' : 'warning',
+        icon: pct >= 70 ? '🎉' : '📋',
+        title: 'Daily Summary',
+        msg: `${done}/${total} tasks done (${pct}% productivity).${pendingOverdue > 0 ? ` ${pendingOverdue} task(s) overdue.` : ' Great job today!'}`
+      });
+    }
+  }
+
+  saveNotifState();
+}
+
+// ---- Settings toggles ----
+function syncSettingsUI() {
+  const map = {
+    'ns-reminder': 'reminder', 'ns-deadline': 'deadline',
+    'ns-overdue':  'overdue',  'ns-progress': 'progress',
+    'ns-summary':  'summary',  'ns-snack':    'snack',
+    'notif-toggle': 'enabled',
+  };
+  Object.entries(map).forEach(([elId, key]) => {
+    const el = document.getElementById(elId);
+    if (el) {
+      el.checked = notifSettings[key];
+      el.addEventListener('change', () => {
+        notifSettings[key] = el.checked;
+        // sync the other "master" toggle if it exists
+        if (key === 'enabled') {
+          const t2 = document.getElementById('notif-toggle');
+          if (t2) t2.checked = el.checked;
+        }
+        saveNotifState();
+        checkPermStatus();
+      });
+    }
+  });
+}
+
+// ---- Init notifications (called from launchApp) ----
+function initNotifications() {
+  loadNotifState();
+  renderNotifPanel();
+  updateBadge();
+  syncSettingsUI();
+  checkPermStatus();
+  // start scheduler
+  runNotifScheduler();
+  if (notifInterval) clearInterval(notifInterval);
+  notifInterval = setInterval(runNotifScheduler, 60000);
+}
+
+/* ---- EXPOSE GLOBALS (for onclick in HTML) ---- */
+window.completeTask      = completeTask;
+window.deleteTask        = deleteTask;
+window.deleteCompleted   = deleteCompleted;
+window.editTask          = editTask;
+window.updateCompletion  = updateCompletion;
+
+/* ---- EVENT LISTENERS ---- */
+document.getElementById('fab-btn').addEventListener('click', openAddModal);
+document.getElementById('open-add-btn').addEventListener('click', openAddModal);
+
+// Notification panel
+document.getElementById('notif-bell-btn').addEventListener('click', e => { e.stopPropagation(); toggleNotifPanel(); });
+document.getElementById('notif-mark-all').addEventListener('click', () => {
+  notifList.forEach(n => n.read = true);
+  saveNotifState(); renderNotifPanel(); updateBadge();
+});
+document.getElementById('notif-clear-all').addEventListener('click', () => {
+  if (!notifList.length) return;
+  if (!confirm('Clear all notifications?')) return;
+  notifList = []; saveNotifState(); renderNotifPanel(); updateBadge();
+});
+document.getElementById('notif-perm-btn').addEventListener('click', requestNotifPermission);
+document.getElementById('notif-request-btn').addEventListener('click', requestNotifPermission);
+document.getElementById('notif-test-btn').addEventListener('click', () => {
+  const total = tasks.length + completedTasks.length;
+  const done  = completedTasks.length;
+  const pct   = total ? Math.round(done / total * 100) : 0;
+  const active = tasks.filter(t => t.deadline > Date.now());
+  const overdue = tasks.filter(t => t.deadline <= Date.now());
+  addNotif({
+    type: 'info', icon: '🧪',
+    title: 'Test Notification',
+    msg: `TaskFlow is working! ${done}/${total} tasks done (${pct}%). Active: ${active.length}, Overdue: ${overdue.length}.`
+  });
+});
+document.getElementById('notif-settings-link').addEventListener('click', () => {
+  closeNotifPanel();
+  const el = document.getElementById('notif-settings-section');
+  if (el) { el.scrollIntoView({ behavior:'smooth', block:'start' }); }
+});
+// Close panel when clicking outside
+document.addEventListener('click', e => {
+  const panel = document.getElementById('notif-panel');
+  const bell  = document.getElementById('notif-bell-btn');
+  if (panelOpen && !panel.contains(e.target) && !bell.contains(e.target)) closeNotifPanel();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeNotifPanel(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); openAddModal(); }
+});
+
+/* ---- INIT ---- */
+const session = localStorage.getItem('tf_session');
+if (session) {
+  try {
+    const s = JSON.parse(session);
+    // Re-load full user for hashed password check
+    const users = JSON.parse(localStorage.getItem('tf_users') || '[]');
+    const user = users.find(u => u.email === s.email) || s;
+    launchApp(user);
+  } catch(e) { localStorage.removeItem('tf_session'); }
+}
+
+})();
+</script>
+</body>
+</html>
